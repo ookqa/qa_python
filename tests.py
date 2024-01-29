@@ -10,29 +10,34 @@ class TestBooksCollector:
         collector.add_new_book('Гордость и предубеждение и зомби')
         collector.add_new_book('Что делать, если ваш кот хочет вас убить')
         collector.add_new_book('Всё о питонах')
-        assert len(collector.books_genre) == 3
+        result = collector.get_books_genre()
+        assert len(result) == 3
 
     # проверка добавления книг с допустимым количеством символов в имени
     @pytest.mark.parametrize('name', ['Ы', 'Мы', 'Трое в лодке', 'Книга символов. Часть 39. 1234567890000', 'Книга символов. Часть 40. 12345678900000'])
     def test_add_new_book_no_genre_book_added(self, collector, name):
         collector.add_new_book(name)
-        assert len(collector.books_genre) == 1
+        result = collector.get_books_genre()
+        assert len(result) == 1
 
     # проверяем невозможность добавить книгу без имени
     def test_add_new_book_zero_len_name_book_not_added(self, collector):
         collector.add_new_book('')
-        assert len(collector.books_genre) == 0
+        result = collector.get_books_genre()
+        assert len(result) == 0
 
     # проверяем невозможность добавить книгу с именем, содержащим более 40 символов
     def test_add_new_book_41_len_name_book_not_added(self, collector):
         collector.add_new_book('Книга символов. Часть 41. 123456789000000')
-        assert len(collector.books_genre) == 0
+        result = collector.get_books_genre()
+        assert len(result) == 0
 
     # проверяем невозможность добавить две книги с одинаковым именем
     def test_add_new_book_two_books_with_same_name_added_once(self, collector):
         collector.add_new_book('Уникальное имя')
         collector.add_new_book('Уникальное имя')
-        assert collector.books_genre == {'Уникальное имя': ''}
+        result = collector.get_books_genre()
+        assert result == {'Уникальное имя': ''}
 
     ### проверки для устанавливания жанра книге ###
 
@@ -42,7 +47,8 @@ class TestBooksCollector:
         book_genre = 'Детективы'
         collector.add_new_book(book_name)
         collector.set_book_genre(book_name, book_genre)
-        assert collector.books_genre[book_name] == 'Детективы'
+        result = collector.get_books_genre()
+        assert result == {'Книга с таким названием. Часть 2': 'Детективы'}
 
     # проверка устанавливания книге несуществующего жанра
     def test_set_book_genre_actual_book_and_nonexistent_genre_genre_not_set(self, collector):
@@ -50,7 +56,8 @@ class TestBooksCollector:
         book_genre = 'Комиксы'
         collector.add_new_book(book_name)
         collector.set_book_genre(book_name, book_genre)
-        assert collector.books_genre[book_name] == ''
+        result = collector.get_books_genre()
+        assert result == {'Книга без жанра': ''}
 
     # проверка устанавливания жанра несуществующей книге
     def test_set_book_genre_nonexistent_book_result_is_none(self, collector):
@@ -82,7 +89,6 @@ class TestBooksCollector:
     def test_get_books_with_specific_genre_actual_books_and_genres_got_specific_genre_books_list(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_new_book('Юмористическая книга')
         collector_with_books_and_genres.set_book_genre('Юмористическая книга', 'Комедии')
-
         assert collector_with_books_and_genres.get_books_with_specific_genre('Комедии') == ['Комедийная книга', 'Юмористическая книга']
 
     ### проверки вывода текущего словаря с добавленными книгами и отображением жанров для каждой из них ###
@@ -116,31 +122,36 @@ class TestBooksCollector:
     # проверка для книги которая есть в словаре
     def test_add_book_in_favorites_actual_book_with_genre_added_in_list(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_book_in_favorites('Детективная книга')
-        assert 'Детективная книга' in collector_with_books_and_genres.favorites
+        result = collector_with_books_and_genres.get_list_of_favorites_books()
+        assert result == ['Детективная книга']
 
     # проверка кейса, когда книги нет в словаре
     def test_add_book_in_favorites_book_not_in_list_not_added(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_book_in_favorites('Призрачная книга')
-        assert collector_with_books_and_genres.favorites == []
+        result = collector_with_books_and_genres.get_list_of_favorites_books()
+        assert result == []
 
     # проверка попытки повторного добавления книги в избранное
     def test_add_book_in_favorites_same_book_again_added_once(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_book_in_favorites('Комедийная книга')
         collector_with_books_and_genres.add_book_in_favorites('Комедийная книга')
-        assert collector_with_books_and_genres.favorites == ['Комедийная книга']
+        result = collector_with_books_and_genres.get_list_of_favorites_books()
+        assert result == ['Комедийная книга']
 
     ### проверки удаления книги из избранного ###
     def test_delete_book_from_favorites_actual_book_deleted(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_book_in_favorites('Ужасная книга')
         collector_with_books_and_genres.add_book_in_favorites('Комедийная книга')
         collector_with_books_and_genres.delete_book_from_favorites('Ужасная книга')
-        assert collector_with_books_and_genres.favorites == ['Комедийная книга']
+        result = collector_with_books_and_genres.get_list_of_favorites_books()
+        assert result == ['Комедийная книга']
 
     # проверка попытки удаления книги не из избранного
     def test_delete_book_from_favorites_book_not_from_favorites_list_unchanged(self, collector_with_books_and_genres):
         collector_with_books_and_genres.add_book_in_favorites('Мультипликационная книга')
         collector_with_books_and_genres.delete_book_from_favorites('Ужасная книга')
-        assert collector_with_books_and_genres.favorites == ['Мультипликационная книга']
+        result = collector_with_books_and_genres.get_list_of_favorites_books()
+        assert result == ['Мультипликационная книга']
 
     ### проверка получения списка избранных книги ###
     def test_get_list_of_favorites_books_got_list(self, collector_with_books_and_genres):
